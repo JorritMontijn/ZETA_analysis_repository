@@ -1,9 +1,8 @@
 %% set parameters
 strDataMasterPath = 'F:\Data\Processed\ePhys\';
 intMakePlots =0;
-vecRandTypes = [2];%1=normal,2=rand
+vecRandTypes = [1];%1=normal,2=rand
 vecRestrictRange = [0 inf];
-boolSave = true;
 vecResamples = 100;
 boolUseSubset = false;
 intArea = 2;
