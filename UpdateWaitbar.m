@@ -1,4 +1,16 @@
 function UpdateWaitbar(~)
+	%UpdateWaitbar Updates waitbar for (parfor) loop
+	%
+	%put the following before the parfor looping over i=1:n
+	%	global intWaitbarTotal;
+	%	intWaitbarTotal = n;
+	%	ptrProgress = parallel.pool.DataQueue;
+	%	afterEach(ptrProgress, @UpdateWaitbar);
+	%
+	%then put the following within the parfor loop
+	%	send(ptrProgress, intNeuron);
+	
+
 	global intWaitbarCounter;
 	global intWaitbarTotal;
 	global ptrWaitbarHandle;
