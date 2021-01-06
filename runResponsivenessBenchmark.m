@@ -81,6 +81,8 @@ for intRandType=vecRandTypes
 			
 		%% prep progress
 		global intWaitbarTotal;
+		global intWaitbarCounter;
+		intWaitbarCounter = 0;
 		intWaitbarTotal = intNeurons;
 		ptrProgress = parallel.pool.DataQueue;
 		afterEach(ptrProgress, @UpdateWaitbar);
@@ -134,7 +136,8 @@ for intRandType=vecRandTypes
 			
 			close;close;
 			%run ZETA
-			[dblZetaP,vecLatencies,sZETA] = getZeta(vecSpikeTimes,matEventTimes,dblUseMaxDur,intResampleNum,intMakePlots,2,vecRestrictRange);
+			intLatencyPeaks = 0;
+			[dblZetaP,vecLatencies,sZETA] = getZeta(vecSpikeTimes,matEventTimes,dblUseMaxDur,intResampleNum,intMakePlots,intLatencyPeaks,vecRestrictRange);
 			
 			% assign data
 			vecNumSpikes(intNeuron) = numel(vecSpikeTimes);

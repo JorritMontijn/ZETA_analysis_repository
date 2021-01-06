@@ -26,5 +26,6 @@ function UpdateWaitbar(~)
 	intWaitbarCounter = intWaitbarCounter + 1;
 	if intWaitbarCounter == intWaitbarTotal
 		delete(ptrWaitbarHandle);
+		intWaitbarCounter = 0;
 	end
 end
