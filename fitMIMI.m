@@ -39,7 +39,7 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	intTrials=numel(vecStimOnTime);
 	dblBinSize = 1/1000;
 	intBins = ceil(dblTrialDur/dblBinSize);
-	matISI = nan(intTrials,intBins);
+	matISI = zeros(intTrials,intBins);
 	[vecTrialPerSpike,vecTimePerSpike] = getSpikesInTrial(vecSpikeTimes,vecStimOnTime,dblTrialDur);
 	cellSpikePerTrial = cell(1,intTrials);
 	matSpikeBins1ms = false(intTrials,intBins);
@@ -49,6 +49,7 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 		vecSpikeBins(vecSpikeBins>intBins)=[];
 		matSpikeBins1ms(intTrial,vecSpikeBins) = true;
 		intStartISI = find(vecAllT>vecStimOnTime(intTrial),1);
+		if isempty(intStartISI),continue;end
 		matISI(intTrial,:) = vecAll_ISI(intStartISI:(intStartISI+intBins-1));
 	end
 	
