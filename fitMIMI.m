@@ -61,9 +61,9 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	
 	%% build vars
 	vecX = (1:intBins)*dblBinSize;
-	vecY = mean(matSpikeBins1ms/dblBinSize,1);
-	vecY_sem = std(matSpikeBins1ms/dblBinSize,[],1)/sqrt(intTrials);
-	vecCoeffsL1 = mean(vecY)*ones(1,intCoeffsL1);
+	vecY = nanmean(matSpikeBins1ms/dblBinSize,1);
+	vecY_sem = nanstd(matSpikeBins1ms/dblBinSize,[],1)/sqrt(intTrials);
+	vecCoeffsL1 = nanmean(vecY)*ones(1,intCoeffsL1);
 	vecCoeffsG1 = zeros(1,intCoeffsG1);
 	vecCoeffs0 = cat(2,vecCoeffsL1,vecCoeffsG1);
 	
