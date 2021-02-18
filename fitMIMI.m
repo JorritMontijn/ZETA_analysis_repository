@@ -1,6 +1,6 @@
-function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur,boolVerbose)
+function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur,boolVerbose,vecCoeffs0)
 	%fitMIMI Fits multiplicative inhomogeneous markov interval model
-	%    sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur)
+	%    sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur,boolVerbose,vecCoeffs0)
 	%Inputs:
 	%intCoeffsL1 = number of coefficients for linear poisson part
 	%intCoeffsG1 = number of coefficients for non-linear part
@@ -65,7 +65,9 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	vecY_sem = nanstd(matSpikeBins1ms/dblBinSize,[],1)/sqrt(intTrials);
 	vecCoeffsL1 = nanmean(vecY)*ones(1,intCoeffsL1);
 	vecCoeffsG1 = zeros(1,intCoeffsG1);
-	vecCoeffs0 = cat(2,vecCoeffsL1,vecCoeffsG1);
+	if ~exist('vecCoeffs0','var') || numel(vecCoeffs0) ~= (intCoeffsL1 + intCoeffsG1)
+		vecCoeffs0 = cat(2,vecCoeffsL1,vecCoeffsG1);
+	end
 	
 	sOptions = struct;
 	if boolVerbose
@@ -77,7 +79,6 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	%% fit
 	[vecFitCoeffs,resnorm,residual,exitflag,output,lambda,jacobian] = lsqcurvefit(@mIMI,vecCoeffs0,vecX,vecY,-10000*ones(size(vecCoeffs0)),10000*ones(size(vecCoeffs0)),sOptions);
 	vecFitY=mIMI(vecFitCoeffs,vecX);
-	%ci = nlparci(vecFitCoeffs,residual,'jacobian',jacobian);
 	
 	%% assign output
 	sMIMI.vecX = vecX;
