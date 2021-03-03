@@ -1,4 +1,4 @@
-function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur,boolVerbose,vecCoeffs0)
+function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblUseMaxDur,boolVerbose,vecCoeffs0)
 	%fitMIMI Fits multiplicative inhomogeneous markov interval model
 	%    sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dblTrialDur,boolVerbose,vecCoeffs0)
 	%Inputs:
@@ -6,7 +6,7 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	%intCoeffsG1 = number of coefficients for non-linear part
 	%vecSpikeTimes = spike time vector
 	%vecStimOnTime = stimulus onset times
-	%dblTrialDur = trial duration to fit 
+	%dblUseMaxDur = trial duration to fit 
 	
 	%get boolVerbose
 	if ~exist('boolVerbose','var') || isempty(boolVerbose)
@@ -16,11 +16,20 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 	%% get spike times in trials
 	vecSpikeTimes = sort(vecSpikeTimes);
 	vecStimOnTime = sort(vecStimOnTime);
-	dblStartT = max([vecSpikeTimes(1) vecStimOnTime(1)-dblTrialDur]);
-	dblStopT = vecStimOnTime(end)+dblTrialDur*2;
+	dblStartT = max([vecSpikeTimes(1) vecStimOnTime(1)-dblUseMaxDur]);
+	dblStopT = vecStimOnTime(end)+dblUseMaxDur*2;
+	vecSpikeTimes(vecSpikeTimes < dblStartT | vecSpikeTimes > dblStopT) = [];
+	
+	%% check spike #
+	sMIMI = [];
+	if numel(vecSpikeTimes) < 3 || numel(vecStimOnTime) < 3
+		return
+	end
+	
+	%% build matrix
 	dblStepSize = 1/1000;
 	vecAllT = dblStartT:dblStepSize:dblStopT;
-	vecAll_ISI = nan(size(vecAllT));
+	vecTimeSinceSpike = nan(size(vecAllT));
 	for intSpikeIdx=2:numel(vecSpikeTimes)
 		dblPrevSpikeT = vecSpikeTimes(intSpikeIdx-1);
 		dblSpikeT = vecSpikeTimes(intSpikeIdx);
@@ -29,18 +38,20 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 		vecIdx = vecAllT < dblSpikeT & vecAllT >= dblPrevSpikeT;
 		vecAssign = 0:dblStepSize:(dblSpikeT-dblPrevSpikeT);
 		if dblSpikeT > dblStopT
-			vecAll_ISI(vecIdx) = vecAssign(1:sum(vecIdx));
+			vecTimeSinceSpike(vecIdx) = vecAssign(1:sum(vecIdx));
 		else
-			vecAll_ISI(vecIdx) = vecAssign((end+1-sum(vecIdx)):end);
+			vecTimeSinceSpike(vecIdx) = vecAssign((end+1-sum(vecIdx)):end);
 		end
 	end
 	
 	%assign to trials
 	intTrials=numel(vecStimOnTime);
-	dblBinSize = 1/1000;
-	intBins = ceil(dblTrialDur/dblBinSize);
-	matISI = zeros(intTrials,intBins);
-	[vecTrialPerSpike,vecTimePerSpike] = getSpikesInTrial(vecSpikeTimes,vecStimOnTime,dblTrialDur);
+	intBins = ceil(dblUseMaxDur/dblStepSize);
+	if intBins < (intCoeffsL1 + intCoeffsG1) %more coefficients than bins
+		return
+	end
+	matTimeSinceSpike = zeros(intTrials,intBins);
+	[vecTrialPerSpike,vecTimePerSpike] = getSpikesInTrial(vecSpikeTimes,vecStimOnTime,dblUseMaxDur);
 	cellSpikePerTrial = cell(1,intTrials);
 	matSpikeBins1ms = false(intTrials,intBins);
 	for intTrial=1:intTrials
@@ -50,19 +61,19 @@ function sMIMI = fitMIMI(intCoeffsL1,intCoeffsG1,vecSpikeTimes,vecStimOnTime,dbl
 		matSpikeBins1ms(intTrial,vecSpikeBins) = true;
 		intStartISI = find(vecAllT>vecStimOnTime(intTrial),1);
 		if isempty(intStartISI),continue;end
-		matISI(intTrial,:) = vecAll_ISI(intStartISI:(intStartISI+intBins-1));
+		matTimeSinceSpike(intTrial,:) = vecTimeSinceSpike(intStartISI:(intStartISI+intBins-1));
 	end
 	
 	%% assign to globals
 	global gMatISI;
-	gMatISI = matISI;
+	gMatISI = matTimeSinceSpike;
 	global gHyperParams_mIMI;
 	gHyperParams_mIMI = [intCoeffsL1 intCoeffsG1];
 	
 	%% build vars
-	vecX = (1:intBins)*dblBinSize;
-	vecY = nanmean(matSpikeBins1ms/dblBinSize,1);
-	vecY_sem = nanstd(matSpikeBins1ms/dblBinSize,[],1)/sqrt(intTrials);
+	vecX = (1:intBins)*dblStepSize;
+	vecY = nanmean(matSpikeBins1ms/dblStepSize,1);
+	vecY_sem = nanstd(matSpikeBins1ms/dblStepSize,[],1)/sqrt(intTrials);
 	vecCoeffsL1 = nanmean(vecY)*ones(1,intCoeffsL1);
 	vecCoeffsG1 = zeros(1,intCoeffsG1);
 	if ~exist('vecCoeffs0','var') || numel(vecCoeffs0) ~= (intCoeffsL1 + intCoeffsG1)

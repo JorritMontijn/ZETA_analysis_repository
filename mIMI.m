@@ -38,6 +38,10 @@ function vecL = mIMI(vecCoeffs,vecX)
 		intKnotsG1 = [];
 	end
 	
+	%ensure orientation
+	vecCoeffs = vecCoeffs(:)';
+	vecX = vecX(:)';
+	
 	%split inputs
 	vecCoeffsL1 = vecCoeffs(1:intCoeffsL1);
 	vecCoeffsG1 = vecCoeffs((intCoeffsL1+1):(intCoeffsL1+intCoeffsG1));
