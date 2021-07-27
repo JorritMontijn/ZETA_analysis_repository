@@ -37,6 +37,7 @@ function [sAggStim,sAggNeuron]=loadDataNpx(strArea,strRunStim)
 		%% load
 		fprintf('Loading %s [%s]\n',cellFiles{intFile},getTime);
 		sLoad = load([strDataSourcePath cellFiles{intFile}]);
+		if ~isfield(sLoad,'sAP'),continue;end
 		sAP = sLoad.sAP;
 		intNewFile = 1;
 		%check if neuron is in target area
