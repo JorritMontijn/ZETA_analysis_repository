@@ -1,4 +1,4 @@
-function ptrWaitbarHandle = UpdateWaitbar(~)
+function ptrWaitbarHandleLocal = UpdateWaitbar(~)
 	%UpdateWaitbar Updates waitbar for (parfor) loop once per second
 	%   ptrWaitbarHandle = UpdateWaitbar(~)
 	%
@@ -35,4 +35,5 @@ function ptrWaitbarHandle = UpdateWaitbar(~)
 		delete(ptrWaitbarHandle);
 		intWaitbarCounter = 0;
 	end
+	ptrWaitbarHandleLocal = ptrWaitbarHandle;
 end
